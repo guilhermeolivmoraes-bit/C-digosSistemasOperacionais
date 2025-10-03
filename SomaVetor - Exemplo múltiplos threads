@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+#define N 100000000   // tamanho do vetor
+#define NUM_THREADS 4 // número de threads
+
+int vetor[N];
+long long soma_parcial[NUM_THREADS];
+
+void* soma_vetor(void* arg) {
+    int id = (int)(size_t)arg;
+    long long soma = 0;
+    int inicio = id * (N / NUM_THREADS);
+    int fim = (id + 1) * (N / NUM_THREADS);
+
+    for (int i = inicio; i < fim; i++) {
+        soma += vetor[i];
+    }
+    soma_parcial[id] = soma;
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[NUM_THREADS];
+
+    // inicializa o vetor
+    for (int i = 0; i < N; i++) {
+        vetor[i] = 1; // valor simples para teste
+    }
+
+    // cria threads
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_create(&threads[i], NULL, soma_vetor, (void*)(size_t)i);
+    }
+
+    // espera todas as threads terminarem
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    // soma total
+    long long soma_total = 0;
+    for (int i = 0; i < NUM_THREADS; i++) {
+        soma_total += soma_parcial[i];
+    }
+
+    printf("Soma total = %lld\n", soma_total);
+    return 0;
+}
